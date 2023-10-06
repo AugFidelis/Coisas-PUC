@@ -1,0 +1,11 @@
+h1{
+    text-shadow: 5px 3px 5px rgb(162, 0, 255), -5px -3px 5px rgb(25, 0, 255);
+    /* O primeiro é o offset horizontal, o segundo é o offset vertical e o terceiro é o valor do blur */
+    /* Além disso, da pra colocar várias sombras juntas separadas com uma vírgula */
+}
+#box1{
+    width: 100px;
+    height: 100px;
+    background-color: lightgray;
+    box-shadow: 5px 5px 5px;
+}
