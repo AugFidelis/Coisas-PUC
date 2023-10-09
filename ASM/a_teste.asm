@@ -49,8 +49,7 @@ MAIN PROC
     CMP AL,57
     JA LER2
 
-    ;subtrai 48 de ambos o divisor e dividendo, fazendo com que o valor decimal deles seja 
-    ;igual ao número em si para serem usados na operação
+    ;faz com que o valor decimal deles seja igual ao número em si para serem usados na operação
     AND BL,0Fh
     AND AL,0Fh
 
@@ -67,7 +66,7 @@ MAIN PROC
         CMP BL,AL
         JAE OPERACAO
 
-    ;adiciona 48 a ambos o resto e o quociente para restaurar o valor decimal dos números
+    ;restaura o valor decimal dos números
     OR BL,30H
     OR BH,30H
     
