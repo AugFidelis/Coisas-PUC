@@ -1,0 +1,60 @@
+.MODEL SMALL
+.DATA
+    MSG1 DB 'INSIRA NUMEROS: $'
+    MSG2 DB 13,10,'A SOMA: $'
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+
+    CALL LEITURA
+
+    CALL IMPRESSAO
+
+    MOV AH,4CH
+    INT 21H
+
+MAIN ENDP
+
+LEITURA PROC
+
+    LEA DX,MSG1
+    MOV AH,09
+    INT 21H
+
+    XOR BL,BL
+
+    LER:
+        MOV AH,01
+        INT 21H
+
+        CMP AL,0DH
+        JE SAIR
+
+        AND AL,0FH
+        
+        ADD BL,AL
+        JMP LER
+
+    SAIR:
+        RET
+
+LEITURA ENDP
+
+IMPRESSAO PROC
+    
+    LEA DX,MSG2
+    MOV AH,09
+    INT 21H
+
+    OR BL,30H
+    MOV DL,BL
+
+    MOV AH,02
+    INT 21H
+
+    RET
+
+IMPRESSAO ENDP
+
+END MAIN
