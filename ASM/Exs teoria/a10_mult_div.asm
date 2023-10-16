@@ -1,0 +1,168 @@
+TITLE TESTE MULTIPLICACAO E DIVISAO
+.MODEL SMALL
+.STACK 100H
+.DATA
+    MSG1 DB 13,10,'ESCOLHA ENTRE DIVISAO ( / ) OU MULTIPLICACAO ( * ): $'
+    MSG2 DB 13,10,'INSIRA O VALOR DO MULTIPLICANDO: $'
+    MSG3 DB 13,10,'INSIRA O VALOR DO MULTIPLICADOR: $'
+    MSG4 DB 13,10,'INSIRA O VALOR DO DIVIDENDO: $'
+    MSG5 DB 13,10,'INSIRA O VALOR DO DIVISOR: $'
+    MSG6 DB 13,10,'VALOR INVALIDO! $'
+    MSG7 DB 13,10,'RESULTADO: $'
+    MSG8 DB 13,10,'RESTO: $'
+
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+
+    CALL LER
+
+
+
+MAIN ENDP
+
+LER PROC
+
+    LEITURA:
+        LEA DX,MSG1
+        MOV AH,09
+        INT 21H
+        
+        MOV AH,01
+        INT 21H
+
+        CMP AL,2AH
+        JE MULTIP
+
+        CMP AL,2FH
+        JE DIVIS
+    
+        LEA DX,MSG6
+        MOV AH,09
+        INT 21H
+
+        JMP LEITURA
+
+    MULTIP:
+
+        CALL MULTI
+        RET
+
+    DIVIS:
+
+        CALL DIVI
+        RET
+
+LER ENDP
+
+MULTI PROC
+
+    LEA DX,MSG2
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    AND AL,0FH
+
+    PUSH AX
+
+    LEA DX,MSG3
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    AND AL,0FH
+    MOV BL,AL
+    
+    POP AX
+
+    PUSH AX
+    PUSH BX
+    
+    MUL BL
+
+    MOV DX,AX
+    PUSH DX
+    
+    LEA DX,MSG7
+    MOV AH,09
+    INT 21H
+
+    POP DX
+    
+    OR DX,30H
+    MOV AH,02
+    INT 21H
+
+    RET
+
+MULTI ENDP
+
+
+DIVI PROC
+
+    LEA DX,MSG4
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    AND AL,0FH
+
+    PUSH AX
+
+    LEA DX,MSG5
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    AND AL,0FH
+    MOV BL,AL
+    
+    POP AX
+
+    ;PUSH AX
+    ;PUSH BX
+    
+    DIV BL
+
+    MOV DL,AL ;QUOCIENTE
+    MOV BH,AH ;RESTO
+    PUSH DX
+    
+    LEA DX,MSG7 ;MSG RESULTADO
+    MOV AH,09
+    INT 21H
+
+    POP DX
+    
+    OR DX,30H
+    MOV AH,02
+    INT 21H
+
+    MOV AH,BH
+    MOV DL,AH
+    PUSH DX
+    
+    LEA DX,MSG8 ;MSG RESTO
+    MOV AH,09
+    INT 21H
+
+    POP DX
+    
+    OR DX,30H
+    MOV AH,02
+    INT 21H
+
+    RET
+DIVI ENDP
+
+END MAIN
