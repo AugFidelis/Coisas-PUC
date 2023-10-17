@@ -65,16 +65,12 @@ LEITURA PROC ;------------------------------------------------------------------
 
             INC BX ;aumenta bx para seguir para o próximo valor da linha
             DEC CL ;avança o loop
-            
-        OR CL,CL ;checa se CL é 0
-        JNZ LINHA
+            JNZ LINHA
 
-    CALL PULA_LINHA 
+    CALL PULA_LINHA
     
     ADD SI,4 ;pula para a próxima coluna
     DEC CH ;avança o loop externo
-    
-    OR CH,CH ;compara com 0
     JNZ COLUNA
 
     RET
@@ -197,7 +193,7 @@ IMPRIME PROC ;------------------------------------------------------------------
         
         ADD SI,4 ;Aumenta SI em 4 para pular para a próxima coluna
         DEC CH ;Diminui CH para seguir o loop externo
-    JNZ LACO_FORA
+        JNZ LACO_FORA
 
     RET ;Retorna para MAIN
 IMPRIME ENDP
