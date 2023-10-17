@@ -13,12 +13,14 @@ TITLE TESTE MULTIPLICACAO E DIVISAO
 
 .CODE
 MAIN PROC
+    
     MOV AX,@DATA
     MOV DS,AX
 
     CALL LER
 
-
+    MOV AH,4CH
+    INT 21H
 
 MAIN ENDP
 
@@ -81,11 +83,12 @@ MULTI PROC
     
     POP AX
 
-    PUSH AX
-    PUSH BX
+    ;PUSH AX
+    ;PUSH BX
     
-    MUL BL
-
+    MUL BL ;MULTIPLICANDO EM AL, RESULTADO EM AX
+    ;(NO CASO DE WORD, USAR IMUL, MULTIPLICANDO EM AX, RESULTADO EM DX E AX)
+    
     MOV DX,AX
     PUSH DX
     
@@ -113,8 +116,8 @@ DIVI PROC
     MOV AH,01
     INT 21H
 
-    AND AL,0FH
-
+    AND AX,0FH
+    
     PUSH AX
 
     LEA DX,MSG5
@@ -124,41 +127,39 @@ DIVI PROC
     MOV AH,01
     INT 21H
 
-    AND AL,0FH
-    MOV BL,AL
+    AND AX,0FH
+
+    PUSH AX
+
+    POP BX
+    POP AX
+
+    ;XOR DX,DX
+    DIV BL ;DIVIDENDO EM AX, RESTO EM AH, QUOCIENTE EM AL
+    ;(NO CASO DE WORD, USAR IDIV, DIVIDENDO EM DX E AX, DEPOIS QUOCIENTE EM AX E RESTO EM DX)
+
+    PUSH AX
+    PUSH AX
+
+    LEA DX,MSG7
+    MOV AH,09
+    INT 21H
     
     POP AX
 
-    ;PUSH AX
-    ;PUSH BX
-    
-    DIV BL
-
-    MOV DL,AL ;QUOCIENTE
-    MOV BH,AH ;RESTO
-    PUSH DX
-    
-    LEA DX,MSG7 ;MSG RESULTADO
-    MOV AH,09
-    INT 21H
-
-    POP DX
-    
-    OR DX,30H
+    MOV DL,AL
+    OR DL,30H
     MOV AH,02
     INT 21H
 
-    MOV AH,BH
-    MOV DL,AH
-    PUSH DX
-    
-    LEA DX,MSG8 ;MSG RESTO
+    LEA DX,MSG8
     MOV AH,09
     INT 21H
-
-    POP DX
     
-    OR DX,30H
+    POP AX
+
+    MOV DL,AH
+    OR DL,30H
     MOV AH,02
     INT 21H
 
