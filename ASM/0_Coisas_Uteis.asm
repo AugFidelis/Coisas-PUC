@@ -14,3 +14,5 @@
 ;TEST XX,01h -> testa se o número é par mas não altera o XX, somente as flags
 
 ;0Dh -> código ASCII hex do <enter>
+
+;20h -> código ASCII hex do <espaço>
