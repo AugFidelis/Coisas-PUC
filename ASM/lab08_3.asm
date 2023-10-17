@@ -17,13 +17,15 @@ MAIN PROC
     MOV AX,@DATA
     MOV DS,AX
 
-    CALL LEITURA
-    CALL IMPRIME
+    CALL LEITURA ;Chama a função de leitura
+    
+    CALL IMPRIME ;Chama a função de exibição da matriz
 
-    CALL SOMA
+    CALL SOMA ;Chama a função de cálculo da soma
     
-    CALL SAIDEC
+    CALL SAIDEC ;Chama a função de exibição do resultado da soma
     
+    ;Finaliza o programa
     MOV AH,4CH
     INT 21H
     
@@ -31,121 +33,125 @@ MAIN ENDP
 
 LEITURA PROC ;--------------------------------------------------------------------------------------------------
     
+    ;Exibe a mensagem
     LEA DX,MSGLER
     MOV AH,09
     INT 21H
 
-    CALL PULA_LINHA
+    CALL PULA_LINHA ;Chama a função que pula uma linha
     
-    MOV CH,4
-    XOR SI,SI
+    MOV CH,4 ;Faz com que o loop externo se repita 4 vezes
+    XOR SI,SI ;Prepara SI
     
     COLUNA:
         
-        MOV CL,4
-        XOR BX,BX
+        MOV CL,4 ;loop interno repete 4 vezes
+        XOR BX,BX ;prepara BX
 
         LINHA:
             
-            MOV AH,01
+            MOV AH,01 ;le caractere
             INT 21H
 
-            CMP AL,30H
+            CMP AL,30H ;caso menor que 0, da erro e não registra o numero
             JB ERRO
 
-            CMP AL,36H
+            CMP AL,36H ;caso maior que 6, da erro e não registra o numero
             JA ERRO
 
-            AND AL,0FH
+            AND AL,0FH ;transforma valor ASCII no número
             
-            MOV BYTE PTR MATRIZ[SI+BX],AL
+            MOV BYTE PTR MATRIZ[SI+BX],AL ;copia o valor colocado pelo usuário na posição SI,BX
 
-            INC BX
-            DEC CL
+            INC BX ;aumenta bx para seguir para o próximo valor da linha
+            DEC CL ;avança o loop
             
-        OR CL,CL
+        OR CL,CL ;checa se CL é 0
         JNZ LINHA
 
-    CALL PULA_LINHA
+    CALL PULA_LINHA 
     
-    ADD SI,4
-    DEC CH
+    ADD SI,4 ;pula para a próxima coluna
+    DEC CH ;avança o loop externo
     
-    OR CH,CH
+    OR CH,CH ;compara com 0
     JNZ COLUNA
 
     RET
 
     ERRO:
-        LEA DX,MSGERRO
+        LEA DX,MSGERRO ;exibe uma mensagem de erro
         MOV AH,09
         INT 21H
-        XOR AX,AX
     JMP LINHA
 
 LEITURA ENDP
 
 SOMA PROC ;----------------------------------------------------------------------------------------------------
 
-    XOR SI,SI
-    MOV CH,4
-    XOR AX,AX
+    XOR SI,SI ;prepara SI
+    MOV CH,4 ;faz com que o loop repita 4 vezes
+    XOR AX,AX ;prepara AX
 
     SOMAR_COL:
-        MOV CL,4
-        XOR BX,BX
+        MOV CL,4 ;loop interno repete 4 vezes
+        XOR BX,BX ;prepara BX
 
         SOMAR_LIN:
             
-           ADD AL,MATRIZ[SI+BX]
+            ADD AL,MATRIZ[SI+BX] ;adiciona o valor atual da matriz a AL
 
-            INC BX
-            DEC CL
-
-            OR CL,CL
-            JNZ SOMAR_LIN
+            INC BX ;pula para o prox endereço da linha
+            DEC CL ;continua o loop
+            JNZ SOMAR_LIN ;checa se CL é zero e reinicia o loop caso não
 
     
-    ADD SI,4
-    DEC CH
-
-    OR CH,CH
+    ADD SI,4 ;pula para a prox coluna
+    DEC CH ;continua o loop
     JNZ SOMAR_COL
-    MOV SOMAT,AL
-    RET
+    
+    MOV SOMAT,AL ;copia o valor acumulado de AL para a variavel SOMAT
+    
+    RET ;retorna para MAIN
 
-    SOMA ENDP
+SOMA ENDP
     
 SAIDEC PROC ;---------------------------------------------------------------------------------------------------
     
-    XOR AX,AX
-    MOV AL,SOMAT
+    CALL PULA_LINHA
     
-    @END_IF1:
-        XOR CX,CX ; contador de d?gitos
-        MOV BX,10 ; divisor
+    LEA DX,MSGSOMA
+    MOV AH,09
+    INT 21H
+    
+    XOR AX,AX ;prepara AX
+    MOV AL,SOMAT ;copia o valor de SOMAT de volta para AL para a divisão
+    
+    XOR CX,CX ;prepara CX
+    MOV BX,10 ;copia 10 para BX como divisor
         
-        @REP1:
-            XOR AH,AH ; prepara parte alta do dividendo
-            DIV BX ; AX = quociente DX = resto
-            PUSH AX ; salva resto na pilha
-            INC CX ; contador = contador +1
-            ;until
-            OR AL,AL ; quociente = 0?
-            JNE @REP1 ; nao, continua
-            ; converte digito em caractere
-            MOV AH,2
-            ; for contador vezes
-        
-        @IMP_LOOP:
-            POP AX ; digito em DL
+    @REP1:
+        XOR AH,AH ;zera AH
+        DIV BL ;divide AL por BL
+        PUSH AX ;guarda AX na pilha
+        INC CX ;aumenta CX para o loop de impressão
+    
+        OR AL,AL ;compara com 0 e pula caso for igual
+        JNE @REP1 
             
-            MOV DL,AH
-            OR DL,30H
-            INT 21H
         
-        LOOP @IMP_LOOP
-        ; fim do for
+    @IMP_LOOP:
+        POP AX ;pega o conteúdo guardado na pilha
+            
+        MOV DL,AH ;copia o conteúdo do resto da divisão guardado em AH para DL
+        OR DL,30H
+
+        MOV AH,02 ;le o conteúdo de DL
+        INT 21H
+        
+    LOOP @IMP_LOOP
+
+    RET
         
 SAIDEC ENDP
 
