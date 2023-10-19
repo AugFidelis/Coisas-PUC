@@ -2,10 +2,7 @@ TITLE ATIVIDADE 8 EXERCICIO 3
 .MODEL SMALL
 .STACK 100H
 .DATA
-    MATRIZ  DB 4 DUP(?)
-            DB 4 DUP(?)
-            DB 4 DUP(?)
-            DB 4 DUP(?)
+    MATRIZ  DB 4 DUP(4 DUP(?))
     SOMAT DB ?
     NOVALINHA DB 13,10,'$'
     MSGLER DB 'INSIRA OS VALORES DA MATRIZ 4x4: $'
