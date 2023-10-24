@@ -149,7 +149,7 @@ ENTHEX PROC ;-------------------------------------------------------------------
 
     XOR BX,BX
 
-    LER2:
+    LER3:
     LEA DX,INSIRAVALOR
     MOV AH,09
     INT 21H
@@ -177,7 +177,7 @@ ENTHEX PROC ;-------------------------------------------------------------------
     MOV AH,09
     INT 21H
     PULALINHA
-    JMP LER2
+    JMP LER3
 
     CONT:
     
