@@ -1,0 +1,90 @@
+TITLE ATIVIDADE 9
+.MODEL SMALL
+
+PULALINHA MACRO
+    PUSH DX
+    PUSH AX
+    MOV DL,10
+    MOV AH,02
+    INT 21H
+    POP AX
+    POP DX
+    ENDM
+
+.DATA
+    MSG1 DB 'QUAL BASE SERA USADA? ("b" para binario, "h" para hexadecimal e "d" para decimal): $'
+    INSIRAVALOR DB 13,10,'INSIRA O VALOR: $'
+    INVALIDO DB 13,10,'VALOR INVALIDO!$'
+
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+
+    CALL LEITURA
+
+    ;CALL IMPRIMIR
+
+
+
+MAIN ENDP
+
+LEITURA PROC
+
+    LER:
+    LEA DX,MSG1
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    CMP AL,'b'
+    JE BIN
+
+    CMP AL,'h'
+    JE HEX
+
+    CMP AL,'d'
+    JE DECIM
+
+    LEA DX,INVALIDO
+    MOV AH,09
+    INT 21H
+    PULALINHA
+    JMP LER
+
+    BIN:
+    CALL LERBIN
+    RET
+
+    HEX:
+    CALL LERHEX
+    RET
+
+    DECIM:
+    CALL LERDECIM
+    RET
+
+LEITURA ENDP
+
+LERBIN PROC
+
+    LEA DX,INSIRAVALOR
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    CMP AL,30H
+    JB ERRO
+
+    CMP AL,31H
+    JA ERRO
+
+    
+
+
+LERBIN ENDP
+END MAIN
