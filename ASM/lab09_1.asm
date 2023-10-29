@@ -29,7 +29,7 @@ MAIN PROC
 
 MAIN ENDP
 
-LEITURA PROC ;---------------------------------------------------------------------------------------------------
+LEITURA PROC ;------------------------------------------------------------------------------------------------------------
 
     LER:
     LEA DX,MSG1
@@ -60,18 +60,18 @@ LEITURA PROC ;------------------------------------------------------------------
     RET
 
     HEX:
-    ;CALL ENTHEX
-    ;CALL SAIHEX
+    CALL ENTHEX
+    CALL SAIHEX
     RET
 
     DECIM:
-    ;CALL ENTDEC
-    ;CALL SAIDEC
+    CALL ENTDEC
+    CALL SAIDEC
     RET
 
-LEITURA ENDP
+LEITURA ENDP ;------------------------------------------------------------------------------------------------------------
 
-ENTBIN PROC ;----------------------------------------------------------------------------------------------------
+ENTBIN PROC ;-------------------------------------------------------------------------------------------------------------
 
     LEA DX,INSIRAVALOR
     MOV AH,09
@@ -147,30 +147,35 @@ SAIBIN ENDP ;-------------------------------------------------------------------
 
 ENTHEX PROC ;----------------------------------------------------------------------------------------------------
 
-    XOR BX,BX
-
-    LER3:
     LEA DX,INSIRAVALOR
     MOV AH,09
     INT 21H
+
+    XOR BX,BX
+    MOV CX,4
+
+    LER3:
 
     MOV AH,01
     INT 21H
 
     CMP AL,0DH
-    JE SAIR
+    JE SAIR3
 
     CMP AL,30H
     JB ERRO2
 
     CMP AL,3AH
-    JB CONT
+    JB FX1
 
     CMP AL,41H
     JB ERRO2
 
     CMP AL,47H
-    JB CONT
+    JB FX2
+
+    CMP AL,47H
+    JAE ERRO2
 
     ERRO2:
     LEA DX,INVALIDO
@@ -179,14 +184,164 @@ ENTHEX PROC ;-------------------------------------------------------------------
     PULALINHA
     JMP LER3
 
-    CONT:
+    FX1:
     
+    SHL BX,4
+    
+    AND AL,0FH
+    ADD BL,AL
 
+    JMP REPETE
 
+    FX2:
 
+    SHL BX,4
+    
+    SUB AL,55
+    ADD BL,AL
 
+    REPETE:
+    LOOP LER3
+    
+    SAIR3:
+    RET
 
+ENTHEX ENDP ;-------------------------------------------------------------------------------------------------------------
 
-ENTHEX ENDP
+SAIHEX PROC ;-------------------------------------------------------------------------------------------------------------
+
+    LEA DX,MSGRES
+    MOV AH,09
+    INT 21H
+    
+    MOV CX,4
+
+    CONV:
+    MOV DL,BH
+    SHR DL,4
+
+    CMP DL,10
+    JAE FAIXA2
+
+    OR DL,30H
+    JMP IMP2
+
+    FAIXA2:
+    ADD DL,55
+
+    IMP2:
+    MOV AH,02
+    INT 21H
+
+    SHL BX,4
+
+    LOOP CONV
+
+    RET
+
+SAIHEX ENDP ;-------------------------------------------------------------------------------------------------------------
+
+ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
+
+    LEA DX,INSIRAVALOR
+    MOV AH,09
+    INT 21H
+    
+    XOR AX,AX
+    XOR BX,BX
+
+    SINAL:
+    MOV AH,01
+    INT 21H
+
+    CMP AL,'-'
+    JE NEGT
+
+    CMP AL,'+'
+    JE LER4
+
+    LEA DX,INVALIDO
+    MOV AH,09
+    INT 21H
+    JMP SINAL
+
+    NEGT:
+    MOV CH,1
+
+    LER4:
+    MOV AH,01
+    INT 21H
+
+    CMP AL,0DH
+    JE SAIR4
+
+    AND AL,0FH
+    PUSH AX
+
+    MOV AL,10
+    MUL BL
+    
+    POP BX
+    
+    ADD BX,AX
+
+    JMP LER4
+
+    SAIR4:
+
+    MOV AX,BX
+
+    CMP CH,1
+    JNE FIM
+
+    NEG AX
+
+    FIM:
+    RET
+
+ENTDEC ENDP ;-------------------------------------------------------------------------------------------------------------
+
+SAIDEC PROC ;-------------------------------------------------------------------------------------------------------------
+
+    LEA DX,MSGRES
+    MOV AH,09
+    INT 21H
+    
+    OR AX,AX
+    JGE SEGUE
+
+    MOV DL,'-'
+    MOV AH,02
+    INT 21H
+
+    NEG AX
+
+    SEGUE:
+    XOR CX,CX
+    
+    MOV BL,10
+
+    CONV2:
+    DIV BL
+    PUSH AX
+
+    INC CX
+
+    OR AL,AL
+    JNE CONV2
+
+    IMP3:
+    POP AX
+    MOV DL,AH
+
+    OR DL,30H
+    MOV AH,02
+    INT 21H
+
+    LOOP IMP3
+
+    RET
+
+SAIDEC ENDP
 
 END MAIN
