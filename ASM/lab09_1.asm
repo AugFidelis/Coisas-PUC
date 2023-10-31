@@ -12,24 +12,29 @@ PULALINHA MACRO
     ENDM
 
 .DATA
-    MSG1 DB 'QUAL BASE SERA USADA? ("b" para binario, "h" para hexadecimal e "d" para decimal): $'
+    MSG1 DB 'QUAL ENTRADA SERA USADA? ("b" para binario, "h" para hexadecimal e "d" para decimal): $'
+    MSG2 DB 'QUAL SAIDA SERA USADA? ("b" para binario, "h" para hexadecimal e "d" para decimal): $'
     INSIRAVALOR DB 13,10,'INSIRA O VALOR: $'
     INVALIDO DB 13,10,'VALOR INVALIDO!$'
     MSGRES DB 13,10,'RESULTADO: $'
+    MSGSINAL DB 13,10,'INSIRA O SINAL: $'
+    RESULTADO DW ?
 
 .CODE
 MAIN PROC
     MOV AX,@DATA
     MOV DS,AX
 
-    CALL LEITURA
+    CALL ENTRADA
+
+    CALL SAIDA
 
     MOV AH,4CH
     INT 21H
 
 MAIN ENDP
 
-LEITURA PROC ;------------------------------------------------------------------------------------------------------------
+ENTRADA PROC ;------------------------------------------------------------------------------------------------------------
 
     LER:
     LEA DX,MSG1
@@ -55,21 +60,59 @@ LEITURA PROC ;------------------------------------------------------------------
     JMP LER
 
     BIN:
-    CALL ENTBIN
-    CALL SAIBIN
+    CALL ENTBIN 
     RET
 
     HEX:
     CALL ENTHEX
-    CALL SAIHEX
     RET
 
     DECIM:
     CALL ENTDEC
+    RET
+
+ENTRADA ENDP ;------------------------------------------------------------------------------------------------------------
+
+SAIDA PROC ;------------------------------------------------------------------------------------------------------------
+
+    PULALINHA
+    
+    SLER:
+    LEA DX,MSG2
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    CMP AL,'b'
+    JE SBIN
+
+    CMP AL,'h'
+    JE SHEX
+
+    CMP AL,'d'
+    JE SDECIM
+
+    LEA DX,INVALIDO
+    MOV AH,09
+    INT 21H
+    PULALINHA
+    JMP SLER
+
+    SBIN:
+    CALL SAIBIN
+    RET
+
+    SHEX:
+    CALL SAIHEX
+    RET
+
+    SDECIM:
     CALL SAIDEC
     RET
 
-LEITURA ENDP ;------------------------------------------------------------------------------------------------------------
+SAIDA ENDP ;------------------------------------------------------------------------------------------------------------
 
 ENTBIN PROC ;-------------------------------------------------------------------------------------------------------------
 
@@ -96,7 +139,7 @@ ENTBIN PROC ;-------------------------------------------------------------------
 
     AND AL,0FH
     SHL BX,1
-    ADD BL,AL
+    ADD BL,AL ;adiciona AL a BL para evitar perda dos valores anteriores
 
     INC CH
     CMP CH,16
@@ -126,7 +169,7 @@ SAIBIN PROC ;-------------------------------------------------------------------
 
     IMP:
     SHL BX,1
-    JC UM
+    JC UM ;caso houver carry apos o deslocamento do MSB para fora, imprime o numero 1
 
     MOV DL,30H
     MOV AH,02
@@ -174,7 +217,7 @@ ENTHEX PROC ;-------------------------------------------------------------------
     CMP AL,47H
     JB FX2
 
-    CMP AL,47H
+    CMP AL,47H ;somente permite numeros de 0 a 9 e letras de A a F
     JAE ERRO2
 
     ERRO2:
@@ -221,7 +264,7 @@ SAIHEX PROC ;-------------------------------------------------------------------
     SHR DL,4
 
     CMP DL,10
-    JAE FAIXA2
+    JAE FAIXA2 ;caso maior que 10, le na faixa de A a F
 
     OR DL,30H
     JMP IMP2
@@ -243,14 +286,14 @@ SAIHEX ENDP ;-------------------------------------------------------------------
 
 ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
 
-    LEA DX,INSIRAVALOR
+    SINAL:
+    LEA DX,MSGSINAL
     MOV AH,09
     INT 21H
     
-    XOR AX,AX
     XOR BX,BX
+    XOR CX,CX
 
-    SINAL:
     MOV AH,01
     INT 21H
 
@@ -258,7 +301,7 @@ ENTDEC PROC ;-------------------------------------------------------------------
     JE NEGT
 
     CMP AL,'+'
-    JE LER4
+    JE POSIT
 
     LEA DX,INVALIDO
     MOV AH,09
@@ -266,7 +309,12 @@ ENTDEC PROC ;-------------------------------------------------------------------
     JMP SINAL
 
     NEGT:
-    MOV CH,1
+    MOV CX,1
+
+    POSIT:
+    LEA DX,INSIRAVALOR
+    MOV AH,09
+    INT 21H
 
     LER4:
     MOV AH,01
@@ -275,11 +323,17 @@ ENTDEC PROC ;-------------------------------------------------------------------
     CMP AL,0DH
     JE SAIR4
 
-    AND AL,0FH
+    CMP AL,'0'
+    JNGE ERRO3
+
+    CMP AL,'9'
+    JNLE ERRO3
+
+    AND AX,000FH
     PUSH AX
 
-    MOV AL,10
-    MUL BL
+    MOV AX,10 ;converte todos os numeros digitados em um numero só
+    MUL BX
     
     POP BX
     
@@ -289,52 +343,62 @@ ENTDEC PROC ;-------------------------------------------------------------------
 
     SAIR4:
 
-    MOV AX,BX
+    OR CX,CX
+    JZ FIM
 
-    CMP CH,1
-    JNE FIM
-
-    NEG AX
+    NEG BX
 
     FIM:
     RET
+
+    ERRO3:
+    LEA DX,INVALIDO
+    MOV AH,09
+    INT 21H
+    JMP SINAL
 
 ENTDEC ENDP ;-------------------------------------------------------------------------------------------------------------
 
 SAIDEC PROC ;-------------------------------------------------------------------------------------------------------------
 
-    LEA DX,MSGRES
+    LEA DX,MSGRES 
     MOV AH,09
     INT 21H
     
-    OR AX,AX
+    MOV AX,BX
+    
+    CMP AX,0 ;compara ax com 0 e caso menor imprime o sinal negativo
     JGE SEGUE
 
+    PUSH AX
+    
     MOV DL,'-'
     MOV AH,02
     INT 21H
-
+    
+    POP AX
     NEG AX
 
     SEGUE:
+    XOR BX,BX
     XOR CX,CX
-    
-    MOV BL,10
+ 
+    MOV BX,10
 
     CONV2:
-    DIV BL
-    PUSH AX
+    XOR DX,DX ;passa o resto das divisoes pra imprimir numero por numero do resultado
+    DIV BX
+    PUSH DX
 
     INC CX
 
-    OR AL,AL
-    JNE CONV2
+    OR AX,AX
+    JNZ CONV2
 
     IMP3:
-    POP AX
-    MOV DL,AH
+    POP DX
 
-    OR DL,30H
+    OR DX,30H
     MOV AH,02
     INT 21H
 
