@@ -257,6 +257,19 @@ SAIHEX PROC ;-------------------------------------------------------------------
     MOV AH,09
     INT 21H
     
+    CMP BX,0 ;compara ax com 0 e caso menor imprime o sinal negativo
+    JGE SEGUEHX
+
+    PUSH BX
+    
+    MOV DL,'-'
+    MOV AH,02
+    INT 21H
+    
+    POP BX
+    NEG BX
+    
+    SEGUEHX:
     MOV CX,4
 
     CONV:
