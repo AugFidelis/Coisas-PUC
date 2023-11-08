@@ -17,8 +17,8 @@ ESPACO MACRO
     MOV DL,20H
     MOV AH,02
     INT 21H
-    POP DX
     POP AX
+    POP DX
     ENDM
 
 .DATA
@@ -26,7 +26,9 @@ ESPACO MACRO
     NOTAS DB 5 DUP(3 DUP(?))
     MSGNOME DB 'INSIRA OS NOMES DOS ALUNOS: $'
     MSGPROVA DB 13,10,'INSIRA AS NOTAS DO ALUNO: $'
-    MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS: MEDIA:$'
+    MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS:    MEDIA:$'
+    RESULTADO DB ?
+    INVALIDO DB '(!)$'
 
 .CODE
 MAIN PROC
@@ -109,10 +111,10 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     LE_NOTAS:
     
     ESPACO
-    
-    MOV AH,01
-    INT 21H
 
+    CALL ENTDEC
+
+    MOV AL,RESULTADO
     MOV NOTAS[DI+BX],AL
 
     INC BX
@@ -188,10 +190,11 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
 
     IMP_NOTAS:
 
-    MOV DL,NOTAS[DI+BX]
+    MOV AL,NOTAS[DI+BX]
 
-    MOV AH,02
-    INT 21H
+    ;MOV AH,02
+    ;INT 21H
+    CALL SAIDEC
 
     ESPACO
 
@@ -205,5 +208,102 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     RET
 
 IMPNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
+
+ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
+    
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    INICIO:
+    XOR BX,BX
+    XOR CX,CX
+
+    LER:
+    MOV AH,01
+    INT 21H
+
+    CMP AL,0DH
+    JE SAIR
+
+    CMP AL,'0'
+    JNGE ERRO
+
+    CMP AL,'9'
+    JNLE ERRO
+
+    AND AX,000FH
+    PUSH AX
+
+    MOV AX,10 ;converte todos os numeros digitados em um numero só
+    MUL BX
+    
+    POP BX
+    
+    ADD BX,AX
+
+    JMP LER
+
+    SAIR:
+    MOV RESULTADO,BL
+
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    
+    RET
+
+    ERRO:
+    LEA DX,INVALIDO
+    MOV AH,09
+    INT 21H
+    JMP INICIO
+
+ENTDEC ENDP ;-------------------------------------------------------------------------------------------------------------
+
+SAIDEC PROC ;-------------------------------------------------------------------------------------------------------------
+
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    ;MOV AX,BX
+    XOR AH,AH
+
+    XOR BX,BX
+    XOR CX,CX
+ 
+    MOV BX,10
+
+    CONV:
+    XOR DX,DX ;passa o resto das divisoes pra imprimir numero por numero do resultado
+    DIV BX
+    PUSH DX
+
+    INC CX
+
+    OR AX,AX
+    JNZ CONV
+
+    IMP:
+    POP DX
+
+    OR DX,30H
+    MOV AH,02
+    INT 21H
+
+    LOOP IMP
+
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+
+    RET
+
+SAIDEC ENDP ;-------------------------------------------------------------------------------------------------------------
 
 END MAIN
