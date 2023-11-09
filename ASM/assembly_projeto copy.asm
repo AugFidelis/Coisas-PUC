@@ -24,11 +24,14 @@ ESPACO MACRO
 .DATA
     ALUNOS DB 5 DUP(15 DUP(?))
     NOTAS DB 5 DUP(3 DUP(?))
-    MSGNOME DB 'INSIRA OS NOMES DOS ALUNOS: $'
-    MSGPROVA DB 13,10,'INSIRA AS NOTAS DO ALUNO: $'
-    MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS:    MEDIA:$'
+    ALUNOALT DB 15 DUP(?)
+    MSGNOME DB 'INSIRA O NOME DO ALUNO: $'
+    MSGPROVA DB 13,10,'INSIRA AS 3 NOTAS DO ALUNO: $'
+    MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS:     MEDIA:$'
     RESULTADO DB ?
     INVALIDO DB '(!)$'
+    NOTAINVALIDA DB 'NOTA INVALIDA! INSIRA UMA NOTA ENTRE 0 E 10.$'
+    MSGALTERAR DB 13,10,'DESEJA ALTERAR AS NOTAS DE UM ALUNO? (digite "s" caso sim) $'
 
 .CODE
 MAIN PROC
@@ -41,10 +44,25 @@ MAIN PROC
     ;planilha de notas. Usar conceitos de procedimentos, macros, endereçamento de matrizes e outros. O
     ;programa deverá ser comentado e dentro do arquivo deverá ter os nomes dos participantes.
 
+    XOR SI,SI
     CALL LERALUNO
 
     CALL IMPALUNO
 
+    LEA DX,MSGALTERAR
+    MOV AH,09
+    INT 21H
+
+    MOV AH,01
+    INT 21H
+
+    CMP AL,73H
+    JNE FINALIZAR
+
+    CALL ALTERARNOTAS
+    CALL IMPALUNO
+
+    FINALIZAR:
     MOV AH,4CH
     INT 21H
 
@@ -53,18 +71,19 @@ MAIN ENDP
 
 LERALUNO PROC ;-----------------------------------------------------------------------------------------------------------
 
+    MOV CH,5
+
+    LER_COLUNA:
     LEA DX,MSGNOME
     MOV AH,09
     INT 21H
     PULALINHA
-
-    MOV CH,5
-    XOR SI,SI
-
-    LER_COLUNA:
+    
     MOV DL,'-'
     MOV AH,02
     INT 21H
+
+    ESPACO
     
     XOR BX,BX
     MOV CL,15
@@ -105,14 +124,25 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     MOV AH,09
     INT 21H
 
+    PULALINHA
+
     MOV CX,3
     XOR BX,BX
 
     LE_NOTAS:
+    MOV DL,'-'
+    MOV AH,02
+    INT 21H
     
     ESPACO
 
     CALL ENTDEC
+
+    CMP RESULTADO,0
+    JB ERRONOTA
+    
+    CMP RESULTADO,10
+    JA ERRONOTA
 
     MOV AL,RESULTADO
     MOV NOTAS[DI+BX],AL
@@ -127,6 +157,13 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     PULALINHA
 
     RET
+
+    ERRONOTA:
+    LEA DX,NOTAINVALIDA
+    MOV AH,09
+    INT 21H
+    PULALINHA
+    JMP LE_NOTAS
 
 LERNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
@@ -192,12 +229,21 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
 
     MOV AL,NOTAS[DI+BX]
 
-    ;MOV AH,02
-    ;INT 21H
+    CMP AL,10
+    JAE PULAR
+
+    CALL SAIDEC
+
+    ESPACO
+    ESPACO
+    JMP CONT
+
+    PULAR:
     CALL SAIDEC
 
     ESPACO
 
+    CONT:
     INC BX
     LOOP IMP_NOTAS
 
@@ -305,5 +351,63 @@ SAIDEC PROC ;-------------------------------------------------------------------
     RET
 
 SAIDEC ENDP ;-------------------------------------------------------------------------------------------------------------
+
+ALTERARNOTAS PROC ;-------------------------------------------------------------------------------------------------------
+
+    PUSH BX
+    PUSH CX
+    PUSH SI
+    PUSH DI
+
+    MOV CX,15
+    XOR BX,BX
+
+    LER_ALT:
+    MOV AH,01
+    INT 21H
+
+    CMP AL,0DH
+    JE SAIR_ALT1
+    
+    MOV ALUNOALT[BX],AL
+
+    INC BX
+    LOOP LER_ALT
+
+    SAIR_ALT1:
+    XOR CX,CX
+
+    MOV CH,5
+
+    LEA SI,ALUNOS
+    LEA DI,ALUNOALT
+    
+    COLUNA_ALT:
+    XOR BX,BX
+    MOV CL,15
+
+    LINHA_ALT:
+    MOV AL,ALUNOS[SI+BX]
+    CMP AL,?
+    JE PROXCOL
+    
+    CMP AL,ALUNOALT[BX]
+    JNE PROXCOL
+
+    CALL LERALUNO
+    JMP FIM_ALT
+
+    DEC CL
+    JNZ LINHA_ALT
+
+    PROXCOL:
+    ADD SI,15
+    DEC CH
+    JNZ COLUNA_ALT
+
+    FIM_ALT:
+    RET
+
+ALTERARNOTAS ENDP
 
 END MAIN
