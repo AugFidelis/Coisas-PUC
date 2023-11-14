@@ -21,17 +21,22 @@ ESPACO MACRO
     POP DX
     ENDM
 
+;.STACK 100H
 .DATA
     ALUNOS DB 5 DUP(15 DUP(?))
     NOTAS DB 5 DUP(3 DUP(?))
+    RESULTADO DB ?
     ALUNOALT DB 15 DUP(?)
+    MEDIAS DB 5 DUP(?)
     MSGNOME DB 'INSIRA O NOME DO ALUNO: $'
     MSGPROVA DB 13,10,'INSIRA AS 3 NOTAS DO ALUNO: $'
     MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS:     MEDIA:$'
-    RESULTADO DB ?
+    SOMAT DB 0
     INVALIDO DB '(!)$'
     NOTAINVALIDA DB 'NOTA INVALIDA! INSIRA UMA NOTA ENTRE 0 E 10.$'
     MSGALTERAR DB 13,10,'DESEJA ALTERAR AS NOTAS DE UM ALUNO? (digite "s" caso sim) $'
+    MSGNOMEALT DB 13,10,'INSIRA O NOME DO ALUNO A ALTERAR AS NOTAS: $'
+    MSG_N_ENC DB 13,10,'O ALUNO INSERIDO NAO PODE SER ENCONTRADO$'
 
 .CODE
 MAIN PROC
@@ -59,6 +64,7 @@ MAIN PROC
     CMP AL,73H
     JNE FINALIZAR
 
+    XOR SI,SI
     CALL ALTERARNOTAS
     CALL IMPALUNO
 
@@ -103,7 +109,10 @@ LERALUNO PROC ;-----------------------------------------------------------------
     
     SAIR_AL:
     CALL LERNOTAS
-    ADD DI,4
+    
+    CALL CALCMEDIA
+
+    ADD DI,3
 
     ADD SI,15
     DEC CH
@@ -147,8 +156,12 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     MOV AL,RESULTADO
     MOV NOTAS[DI+BX],AL
 
+    AND AL,0FH
+    ADD SOMAT,AL
+
     INC BX
     LOOP LE_NOTAS
+
 
     POP CX
     POP BX
@@ -166,6 +179,28 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     JMP LE_NOTAS
 
 LERNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
+
+CALCMEDIA PROC ;----------------------------------------------------------------------------------------------------------
+
+    PUSH AX
+    PUSH BX
+
+    MOV BL,3
+    
+    MOV AL,SOMAT
+    DIV BL
+
+    AND AL,0FH
+    MOV MEDIAS[DI],AL
+
+    MOV SOMAT,0
+    
+    POP BX
+    POP AX
+
+    RET
+
+CALCMEDIA ENDP ;----------------------------------------------------------------------------------------------------------
 
 IMPALUNO PROC ;-----------------------------------------------------------------------------------------------------------
     
@@ -206,7 +241,9 @@ IMPALUNO PROC ;-----------------------------------------------------------------
     JNZ IMP_AL2
     
     CALL IMPNOTAS
-    ADD DI,4
+    ADD DI,3
+
+    CALL IMPMEDIA
 
     ADD SI,15
     DEC CH
@@ -221,6 +258,7 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     PUSH SI
     PUSH BX
     PUSH CX
+    PUSH DI
 
     MOV CX,3
     XOR BX,BX
@@ -247,6 +285,9 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     INC BX
     LOOP IMP_NOTAS
 
+    ;CALL IMPMEDIA
+
+    POP DI
     POP CX
     POP BX
     POP SI
@@ -254,6 +295,16 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     RET
 
 IMPNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
+
+IMPMEDIA PROC
+
+    MOV AL,MEDIAS[DI]
+    SUB AL,170
+    CALL SAIDEC
+
+    RET
+
+IMPMEDIA ENDP
 
 ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
     
@@ -291,6 +342,7 @@ ENTDEC PROC ;-------------------------------------------------------------------
 
     JMP LER
 
+    
     SAIR:
     MOV RESULTADO,BL
 
@@ -359,6 +411,10 @@ ALTERARNOTAS PROC ;-------------------------------------------------------------
     PUSH SI
     PUSH DI
 
+    LEA DX,MSGNOMEALT
+    MOV AH,09
+    INT 21H
+    
     MOV CX,15
     XOR BX,BX
 
@@ -376,36 +432,48 @@ ALTERARNOTAS PROC ;-------------------------------------------------------------
 
     SAIR_ALT1:
     XOR CX,CX
-
+    XOR DI,DI
+    XOR AX,AX
+    
     MOV CH,5
-
-    LEA SI,ALUNOS
-    LEA DI,ALUNOALT
     
     COLUNA_ALT:
     XOR BX,BX
+    XOR SI,SI
     MOV CL,15
 
     LINHA_ALT:
     MOV AL,ALUNOS[SI+BX]
-    CMP AL,?
-    JE PROXCOL
+    ;CMP AL,?
+    ;JE PROXCOL
     
-    CMP AL,ALUNOALT[BX]
+    MOV BL,ALUNOALT[BX]
+    CMP AL,BL
     JNE PROXCOL
-
-    CALL LERALUNO
-    JMP FIM_ALT
-
+    
+    INC BX
     DEC CL
     JNZ LINHA_ALT
 
+    XOR BX,BX
+    CALL LERNOTAS
+    JMP FIM_ALT
+
     PROXCOL:
     ADD SI,15
+    ADD DI,3
     DEC CH
     JNZ COLUNA_ALT
 
+    LEA DX,MSG_N_ENC
+    MOV AH,09
+    INT 21H
+
     FIM_ALT:
+    POP DI
+    POP SI
+    POP CX
+    POP BX
     RET
 
 ALTERARNOTAS ENDP
