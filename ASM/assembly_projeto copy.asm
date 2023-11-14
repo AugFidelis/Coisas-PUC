@@ -206,7 +206,7 @@ CALCMEDIA PROC ;----------------------------------------------------------------
     MOV BL,3
     DIV BL
 
-    OR AL,0FH
+    AND AL,0FH
     MOV MEDIAS[DI],AL
     INC DI
 
