@@ -11,11 +11,22 @@ PULALINHA MACRO
     POP DX
     ENDM
 
+ESPACO MACRO
+    PUSH DX
+    PUSH AX
+    MOV DL,20H
+    MOV AH,02
+    INT 21H
+    POP DX
+    POP AX
+    ENDM
+
 .DATA
     ALUNOS DB 5 DUP(15 DUP(?))
     NOTAS DB 5 DUP(3 DUP(?))
     MSGNOME DB 'INSIRA OS NOMES DOS ALUNOS: $'
     MSGPROVA DB 13,10,'INSIRA AS NOTAS DO ALUNO: $'
+    MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS: MEDIA:$'
 
 .CODE
 MAIN PROC
@@ -38,7 +49,7 @@ MAIN PROC
 
 MAIN ENDP
 
-LERALUNO PROC
+LERALUNO PROC ;-----------------------------------------------------------------------------------------------------------
 
     LEA DX,MSGNOME
     MOV AH,09
@@ -71,6 +82,7 @@ LERALUNO PROC
     
     SAIR_AL:
     CALL LERNOTAS
+    ADD DI,4
 
     ADD SI,15
     DEC CH
@@ -79,9 +91,9 @@ LERALUNO PROC
     RET
 
 
-LERALUNO ENDP
+LERALUNO ENDP ;-----------------------------------------------------------------------------------------------------------
 
-LERNOTAS PROC
+LERNOTAS PROC ;-----------------------------------------------------------------------------------------------------------
 
     PUSH SI
     PUSH BX
@@ -92,18 +104,18 @@ LERNOTAS PROC
     INT 21H
 
     MOV CX,3
+    XOR BX,BX
 
     LE_NOTAS:
+    
+    ESPACO
+    
     MOV AH,01
     INT 21H
 
-    MOV DL,20H
-    MOV AH,02
-    INT 21H
+    MOV NOTAS[DI+BX],AL
 
-    MOV NOTAS[DI],AL
-
-    INC DI
+    INC BX
     LOOP LE_NOTAS
 
     POP CX
@@ -114,11 +126,15 @@ LERNOTAS PROC
 
     RET
 
-LERNOTAS ENDP
+LERNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
-IMPALUNO PROC
+IMPALUNO PROC ;-----------------------------------------------------------------------------------------------------------
     
     PULALINHA
+
+    LEA DX,MSGIMPRIMIR
+    MOV AH,09
+    INT 21H
 
     XOR DI,DI
     XOR SI,SI
@@ -144,8 +160,14 @@ IMPALUNO PROC
     JNZ IMP_AL2
 
     NOVACOLUNA:
+
+    ESPACO
+    
+    DEC CL
+    JNZ IMP_AL2
     
     CALL IMPNOTAS
+    ADD DI,4
 
     ADD SI,15
     DEC CH
@@ -153,24 +175,27 @@ IMPALUNO PROC
 
     RET
 
-IMPALUNO ENDP
+IMPALUNO ENDP ;----------------------------------------------------------------------------------------------------------
 
-IMPNOTAS PROC
+IMPNOTAS PROC ;----------------------------------------------------------------------------------------------------------
 
     PUSH SI
     PUSH BX
     PUSH CX
 
     MOV CX,3
+    XOR BX,BX
 
     IMP_NOTAS:
 
-    MOV DL,NOTAS[DI]
+    MOV DL,NOTAS[DI+BX]
 
     MOV AH,02
     INT 21H
 
-    INC DI
+    ESPACO
+
+    INC BX
     LOOP IMP_NOTAS
 
     POP CX
@@ -179,6 +204,6 @@ IMPNOTAS PROC
 
     RET
 
-IMPNOTAS ENDP
+IMPNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
 END MAIN
