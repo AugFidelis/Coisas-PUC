@@ -25,7 +25,7 @@ ESPACO MACRO
 .DATA
     ALUNOS DB 5 DUP(15 DUP(?))
     NOTAS DB 5 DUP(3 DUP(?))
-    RESULTADO DB ?
+    RESULTADO DW ?
     ALUNOALT DB 15 DUP(?)
     MEDIAS DB 5 DUP(?)
     MSGNOME DB 'INSIRA O NOME DO ALUNO: $'
@@ -54,21 +54,21 @@ MAIN PROC
 
     CALL IMPALUNO
 
-    LEA DX,MSGALTERAR
-    MOV AH,09
-    INT 21H
+    ;LEA DX,MSGALTERAR
+    ;MOV AH,09
+    ;INT 21H
 
-    MOV AH,01
-    INT 21H
+    ;MOV AH,01
+    ;INT 21H
 
-    CMP AL,73H
-    JNE FINALIZAR
+    ;CMP AL,73H
+    ;JNE FINALIZAR
 
-    XOR SI,SI
-    CALL ALTERARNOTAS
-    CALL IMPALUNO
+    ;XOR SI,SI
+    ;CALL ALTERARNOTAS
+    ;CALL IMPALUNO
 
-    FINALIZAR:
+    ;FINALIZAR:
     MOV AH,4CH
     INT 21H
 
@@ -109,14 +109,14 @@ LERALUNO PROC ;-----------------------------------------------------------------
     
     SAIR_AL:
     CALL LERNOTAS
-    
-    CALL CALCMEDIA
 
     ADD DI,3
 
     ADD SI,15
     DEC CH
     JNZ LER_COLUNA
+
+    CALL CALCMEDIA
 
     RET
 
@@ -147,17 +147,15 @@ LERNOTAS PROC ;-----------------------------------------------------------------
 
     CALL ENTDEC
 
-    CMP RESULTADO,0
+    CMP AL,0
     JB ERRONOTA
     
-    CMP RESULTADO,10
+    CMP AL,10
     JA ERRONOTA
 
-    MOV AL,RESULTADO
+    ;MOV AX,RESULTADO
+    OR AL,30H
     MOV NOTAS[DI+BX],AL
-
-    AND AL,0FH
-    ADD SOMAT,AL
 
     INC BX
     LOOP LE_NOTAS
@@ -184,23 +182,57 @@ CALCMEDIA PROC ;----------------------------------------------------------------
 
     PUSH AX
     PUSH BX
+    PUSH SI
+    PUSH DI
 
+    XOR SI,SI
+    XOR AX,AX
+
+    MOV CH,5
+
+    CALC_MEDIA:
+    XOR BX,BX
+
+    MOV CL,3
+    SOMAR:
+    ADD AL,NOTAS[SI+BX]
+    INC BX
+    DEC CL
+    JNZ SOMAR
+
+    XOR BX,BX
+
+    XOR AH,AH
     MOV BL,3
-    
-    MOV AL,SOMAT
     DIV BL
 
     AND AL,0FH
     MOV MEDIAS[DI],AL
+    INC DI
 
-    MOV SOMAT,0
+    ADD SI,4
+
+    DEC CH
+    JNZ CALC_MEDIA
     
+    POP DI
+    POP SI
     POP BX
     POP AX
 
     RET
 
 CALCMEDIA ENDP ;----------------------------------------------------------------------------------------------------------
+
+IMPMEDIA PROC
+
+    MOV AL,MEDIAS[DI]
+    ;SUB AL,170
+    CALL SAIDEC
+
+    RET
+
+IMPMEDIA ENDP
 
 IMPALUNO PROC ;-----------------------------------------------------------------------------------------------------------
     
@@ -266,6 +298,7 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     IMP_NOTAS:
 
     MOV AL,NOTAS[DI+BX]
+    AND AL,0FH
 
     CMP AL,10
     JAE PULAR
@@ -296,19 +329,9 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
 
 IMPNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
-IMPMEDIA PROC
-
-    MOV AL,MEDIAS[DI]
-    SUB AL,170
-    CALL SAIDEC
-
-    RET
-
-IMPMEDIA ENDP
-
 ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
     
-    PUSH AX
+    ;PUSH AX
     PUSH BX
     PUSH CX
     PUSH DX
@@ -330,7 +353,7 @@ ENTDEC PROC ;-------------------------------------------------------------------
     CMP AL,'9'
     JNLE ERRO
 
-    AND AX,000FH
+    AND AX,0FH
     PUSH AX
 
     MOV AX,10 ;converte todos os numeros digitados em um numero só
@@ -344,12 +367,12 @@ ENTDEC PROC ;-------------------------------------------------------------------
 
     
     SAIR:
-    MOV RESULTADO,BL
+    MOV AX,BX
 
     POP DX
     POP CX
     POP BX
-    POP AX
+    ;POP AX
     
     RET
 
@@ -370,6 +393,7 @@ SAIDEC PROC ;-------------------------------------------------------------------
     
     ;MOV AX,BX
     XOR AH,AH
+    ;AND AL,0FH
 
     XOR BX,BX
     XOR CX,CX
