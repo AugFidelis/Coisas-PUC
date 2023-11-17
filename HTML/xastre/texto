@@ -1,0 +1,190 @@
+/* Home */
+
+position: absolute;
+left: 51.67%;
+right: 39.24%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Home */
+
+position: absolute;
+left: 51.67%;
+right: 39.24%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Rectangle 18 */
+
+position: absolute;
+left: 0%;
+right: 0%;
+top: 0%;
+bottom: 89.55%;
+
+background: #121212;
+box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Agenda */
+
+position: absolute;
+left: 69.86%;
+right: 21.04%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Fazer Reserva */
+
+position: absolute;
+left: 60.76%;
+right: 30.14%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Cardápio */
+
+position: absolute;
+left: 78.96%;
+right: 11.94%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Entrar */
+
+position: absolute;
+left: 88.06%;
+right: 2.78%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* logo 1 */
+
+position: absolute;
+left: 0%;
+right: 0%;
+top: 0%;
+bottom: 0%;
+
+background: url(logo);
+
+
+/* Pacotes */
+
+position: absolute;
+left: 51.67%;
+right: 39.24%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+
+/* Home */
+
+position: absolute;
+left: 42.57%;
+right: 48.33%;
+top: 3.32%;
+bottom: 92.87%;
+
+font-family: 'Inter';
+font-style: normal;
+font-weight: 600;
+font-size: 20px;
+line-height: 24px;
+display: flex;
+align-items: center;
+text-align: center;
+
+
+color: #FFFFFF;
+

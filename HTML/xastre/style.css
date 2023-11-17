@@ -1,0 +1,59 @@
+body{
+    background-image: url(imagens/background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+
+    font-family: Nunito, verdana;
+    font-size: 0.9em;
+}
+#logo{
+    height: 70px;
+}
+.header{
+    padding: 7px 7px;
+    color: rgb(39, 39, 39);
+    background: #222222;
+
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    margin: 0px;
+    width: 100%;
+    margin-left: auto;
+
+}
+a.options{
+    color: white;
+    position: absolute;
+    top: 2.5em;
+}
+
+#home.options{
+    left: 45%;
+}
+
+#pacotes.options{
+    left: 50%;
+}
+
+#reserva.options{
+    left: 55%;
+}
+
+#agenda.options{
+    left: 62.5%;
+}
+
+#cardapio.options{
+    left: 67.5%;
+}
+
+#usuario.options{
+    left: 72.5%;
+}
+
+.content{
+    margin-top: 100px;
+}
