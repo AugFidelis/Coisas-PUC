@@ -54,21 +54,21 @@ MAIN PROC
 
     CALL IMPALUNO
 
-    ;LEA DX,MSGALTERAR
-    ;MOV AH,09
-    ;INT 21H
+    LEA DX,MSGALTERAR
+    MOV AH,09
+    INT 21H
 
-    ;MOV AH,01
-    ;INT 21H
+    MOV AH,01
+    INT 21H
 
-    ;CMP AL,73H
-    ;JNE FINALIZAR
+    CMP AL,73H
+    JNE FINALIZAR
 
-    ;XOR SI,SI
-    ;CALL ALTERARNOTAS
-    ;CALL IMPALUNO
+    XOR SI,SI
+    CALL ALTERARNOTAS
+    CALL IMPALUNO
 
-    ;FINALIZAR:
+    FINALIZAR:
     MOV AH,4CH
     INT 21H
 
@@ -187,6 +187,7 @@ CALCMEDIA PROC ;----------------------------------------------------------------
 
     XOR SI,SI
     XOR AX,AX
+    XOR DI,DI
 
     MOV CH,5
 
@@ -195,7 +196,9 @@ CALCMEDIA PROC ;----------------------------------------------------------------
 
     MOV CL,3
     SOMAR:
-    ADD AL,NOTAS[SI+BX]
+    MOV DL,NOTAS[SI+BX]
+    AND DL,0FH
+    ADD AL,DL
     INC BX
     DEC CL
     JNZ SOMAR
@@ -206,11 +209,13 @@ CALCMEDIA PROC ;----------------------------------------------------------------
     MOV BL,3
     DIV BL
 
-    AND AL,0FH
+    OR AL,30H
     MOV MEDIAS[DI],AL
     INC DI
 
-    ADD SI,4
+    ADD SI,3
+
+    XOR AX,AX
 
     DEC CH
     JNZ CALC_MEDIA
@@ -226,9 +231,19 @@ CALCMEDIA ENDP ;----------------------------------------------------------------
 
 IMPMEDIA PROC
 
+    PUSH DI
+    
+    ESPACO
+    ESPACO
+    
+    XOR AX,AX
+    MOV AL,DH
+    MOV DI,AX
     MOV AL,MEDIAS[DI]
-    ;SUB AL,170
+    AND AL,0FH
     CALL SAIDEC
+
+    POP DI
 
     RET
 
@@ -241,6 +256,8 @@ IMPALUNO PROC ;-----------------------------------------------------------------
     LEA DX,MSGIMPRIMIR
     MOV AH,09
     INT 21H
+
+    XOR DX,DX
 
     XOR DI,DI
     XOR SI,SI
@@ -276,6 +293,7 @@ IMPALUNO PROC ;-----------------------------------------------------------------
     ADD DI,3
 
     CALL IMPMEDIA
+    INC DH
 
     ADD SI,15
     DEC CH
@@ -317,8 +335,6 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     CONT:
     INC BX
     LOOP IMP_NOTAS
-
-    ;CALL IMPMEDIA
 
     POP DI
     POP CX
@@ -364,7 +380,6 @@ ENTDEC PROC ;-------------------------------------------------------------------
     ADD BX,AX
 
     JMP LER
-
     
     SAIR:
     MOV AX,BX
@@ -391,9 +406,7 @@ SAIDEC PROC ;-------------------------------------------------------------------
     PUSH CX
     PUSH DX
     
-    ;MOV AX,BX
     XOR AH,AH
-    ;AND AL,0FH
 
     XOR BX,BX
     XOR CX,CX
@@ -458,37 +471,50 @@ ALTERARNOTAS PROC ;-------------------------------------------------------------
     XOR CX,CX
     XOR DI,DI
     XOR AX,AX
+    XOR SI,SI
+    XOR DX,DX
     
     MOV CH,5
     
     COLUNA_ALT:
     XOR BX,BX
-    XOR SI,SI
     MOV CL,15
+    MOV SOMAT,0
 
     LINHA_ALT:
     MOV AL,ALUNOS[SI+BX]
-    ;CMP AL,?
-    ;JE PROXCOL
+    CMP AL,?
+    JE FIMLINHA
     
-    MOV BL,ALUNOALT[BX]
-    CMP AL,BL
-    JNE PROXCOL
+    MOV DH,ALUNOALT[BX]
+    CMP AL,DH
+    JNE NAOIGUAL
     
     INC BX
     DEC CL
     JNZ LINHA_ALT
+    JMP FIMLINHA
 
+    NAOIGUAL:
+    MOV SOMAT,1
+
+    FIMLINHA:
+    CMP SOMAT,1
+    JE PROXCOL
     XOR BX,BX
     CALL LERNOTAS
+    CALL CALCMEDIA
+    CALL IMPMEDIA
     JMP FIM_ALT
 
     PROXCOL:
     ADD SI,15
     ADD DI,3
+    INC DL
     DEC CH
     JNZ COLUNA_ALT
 
+    ERRO_ALT:
     LEA DX,MSG_N_ENC
     MOV AH,09
     INT 21H
