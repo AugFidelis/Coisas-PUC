@@ -21,11 +21,9 @@ ESPACO MACRO
     POP DX
     ENDM
 
-;.STACK 100H
 .DATA
     ALUNOS DB 5 DUP(15 DUP(?))
     NOTAS DB 5 DUP(3 DUP(?))
-    RESULTADO DW ?
     ALUNOALT DB 15 DUP(?)
     MEDIAS DB 5 DUP(?)
     MSGNOME DB 'INSIRA O NOME DO ALUNO: $'
@@ -49,11 +47,14 @@ MAIN PROC
     ;planilha de notas. Usar conceitos de procedimentos, macros, endereçamento de matrizes e outros. O
     ;programa deverá ser comentado e dentro do arquivo deverá ter os nomes dos participantes.
 
-    XOR SI,SI
+    ;MEMBROS DO GRUPO: Augusto Fidelis - RA: 23004589
+
+    XOR SI,SI ;prepara SI fora do procedimento para uso dentro da função de alterar notas 
     CALL LERALUNO
 
     CALL IMPALUNO
 
+    ;exibe a mensagem perguntando se deseja alterar as notas de algum aluno
     LEA DX,MSGALTERAR
     MOV AH,09
     INT 21H
@@ -153,7 +154,6 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     CMP AL,10
     JA ERRONOTA
 
-    ;MOV AX,RESULTADO
     OR AL,30H
     MOV NOTAS[DI+BX],AL
 
@@ -179,11 +179,6 @@ LERNOTAS PROC ;-----------------------------------------------------------------
 LERNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
 CALCMEDIA PROC ;----------------------------------------------------------------------------------------------------------
-
-    PUSH AX
-    PUSH BX
-    PUSH SI
-    PUSH DI
 
     XOR SI,SI
     XOR AX,AX
@@ -219,11 +214,6 @@ CALCMEDIA PROC ;----------------------------------------------------------------
 
     DEC CH
     JNZ CALC_MEDIA
-    
-    POP DI
-    POP SI
-    POP BX
-    POP AX
 
     RET
 
@@ -346,8 +336,6 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
 IMPNOTAS ENDP ;-----------------------------------------------------------------------------------------------------------
 
 ENTDEC PROC ;-------------------------------------------------------------------------------------------------------------
-    
-    ;PUSH AX
     PUSH BX
     PUSH CX
     PUSH DX
@@ -387,7 +375,6 @@ ENTDEC PROC ;-------------------------------------------------------------------
     POP DX
     POP CX
     POP BX
-    ;POP AX
     
     RET
 
@@ -504,13 +491,12 @@ ALTERARNOTAS PROC ;-------------------------------------------------------------
     XOR BX,BX
     CALL LERNOTAS
     CALL CALCMEDIA
-    CALL IMPMEDIA
     JMP FIM_ALT
 
     PROXCOL:
     ADD SI,15
     ADD DI,3
-    INC DL
+    INC DH
     DEC CH
     JNZ COLUNA_ALT
 
