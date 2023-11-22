@@ -26,10 +26,10 @@ ESPACO MACRO
     NOTAS DB 5 DUP(3 DUP(?))
     ALUNOALT DB 15 DUP(?)
     MEDIAS DB 5 DUP(?)
+    DIF DB 0
     MSGNOME DB 'INSIRA O NOME DO ALUNO: $'
     MSGPROVA DB 13,10,'INSIRA AS 3 NOTAS DO ALUNO: $'
     MSGIMPRIMIR DB 13,10,'ALUNOS:        NOTAS:     MEDIA:$'
-    SOMAT DB 0
     INVALIDO DB '(!)$'
     NOTAINVALIDA DB 'NOTA INVALIDA! INSIRA UMA NOTA ENTRE 0 E 10.$'
     MSGALTERAR DB 13,10,'DESEJA ALTERAR AS NOTAS DE UM ALUNO? (digite "s" caso sim) $'
@@ -59,16 +59,20 @@ MAIN PROC
     MOV AH,09
     INT 21H
 
+    ;le o caractere e caso for 's', segue para a chamada de alterar notas
     MOV AH,01
     INT 21H
 
     CMP AL,73H
     JNE FINALIZAR
 
-    XOR SI,SI
-    CALL ALTERARNOTAS
+    XOR SI,SI ;prepara SI
+    
+    ;caso 's' foi inserido, ele chama o procedimento de alterar notas e o de ler a matriz da sala alterada
+    CALL ALTERARNOTAS 
     CALL IMPALUNO
 
+    ;finaliza o programa
     FINALIZAR:
     MOV AH,4CH
     INT 21H
@@ -78,10 +82,10 @@ MAIN ENDP
 
 LERALUNO PROC ;-----------------------------------------------------------------------------------------------------------
 
-    MOV CH,5
+    MOV CH,5 ;move 5 para CH para as 5 linhas da matriz
 
     LER_COLUNA:
-    LEA DX,MSGNOME
+    LEA DX,MSGNOME 
     MOV AH,09
     INT 21H
     PULALINHA
@@ -92,6 +96,7 @@ LERALUNO PROC ;-----------------------------------------------------------------
 
     ESPACO
     
+    ;prepara bx e move 15 para CL para cada caractere do nome
     XOR BX,BX
     MOV CL,15
 
@@ -99,25 +104,25 @@ LERALUNO PROC ;-----------------------------------------------------------------
     MOV AH,01
     INT 21H
 
-    CMP AL,0DH
+    CMP AL,0DH ;caso for 'enter', pula para o fim da leitura de nomes
     JE SAIR_AL
 
-    MOV ALUNOS[SI+BX],AL
+    MOV ALUNOS[SI+BX],AL ;move o caractere inserido para a matriz de nomes
 
-    INC BX
+    INC BX ;aumenta bx para ir para o proximo caractere
     DEC CL
     JNZ LER_LINHA
     
     SAIR_AL:
-    CALL LERNOTAS
+    CALL LERNOTAS ;chama a função para ler as notas do aluno atual
 
-    ADD DI,3
+    ADD DI,3 ;adiciona 3 a di para mover a posição na matriz de notas do aluno
 
-    ADD SI,15
+    ADD SI,15 ;pula para a proxima linha da matriz (próximo aluno)
     DEC CH
     JNZ LER_COLUNA
 
-    CALL CALCMEDIA
+    CALL CALCMEDIA ;chama a função de calculo de medias após a leitura das notas
 
     RET
 
@@ -136,8 +141,8 @@ LERNOTAS PROC ;-----------------------------------------------------------------
 
     PULALINHA
 
-    MOV CX,3
-    XOR BX,BX
+    MOV CX,3 ;move 3 para CX para realizar o loop de ler a nota 3 vezes
+    XOR BX,BX ;zera bx
 
     LE_NOTAS:
     MOV DL,'-'
@@ -146,20 +151,20 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     
     ESPACO
 
-    CALL ENTDEC
+    CALL ENTDEC ;chama a função de leitura decimal
 
-    CMP AL,0
+    ;caso a nota for menor que 0 ou maior que 10, pula para a mensagem de erro
+    CMP AL,0 
     JB ERRONOTA
     
     CMP AL,10
     JA ERRONOTA
 
-    OR AL,30H
-    MOV NOTAS[DI+BX],AL
+    OR AL,30H ;transforma o número em valor ascii
+    MOV NOTAS[DI+BX],AL ;move o conteúdo lido para a matriz de notas
 
-    INC BX
+    INC BX ;pula para a proxima nota de um aluno na matriz de notas
     LOOP LE_NOTAS
-
 
     POP CX
     POP BX
@@ -170,7 +175,7 @@ LERNOTAS PROC ;-----------------------------------------------------------------
     RET
 
     ERRONOTA:
-    LEA DX,NOTAINVALIDA
+    LEA DX,NOTAINVALIDA ;le a mensagem de erro
     MOV AH,09
     INT 21H
     PULALINHA
@@ -184,33 +189,32 @@ CALCMEDIA PROC ;----------------------------------------------------------------
     XOR AX,AX
     XOR DI,DI
 
-    MOV CH,5
+    MOV CH,5 ;move 5 para CH para as 5 linhas da matriz de notas
 
     CALC_MEDIA:
-    XOR BX,BX
+    XOR BX,BX ;zera BX
 
-    MOV CL,3
+    MOV CL,3 ;move 3 para CL para as 3 notas em cada linha
     SOMAR:
-    MOV DL,NOTAS[SI+BX]
-    AND DL,0FH
-    ADD AL,DL
+    MOV DL,NOTAS[SI+BX] ;move o valor da nota para DL
+    AND DL,0FH ;transforma em valor decimal
+    ADD AL,DL ;adiciona em AL 
+    
     INC BX
     DEC CL
     JNZ SOMAR
 
-    XOR BX,BX
-
-    XOR AH,AH
+    XOR AH,AH ;zera AH
     MOV BL,3
-    DIV BL
+    DIV BL ;divide o valor acumulado das 3 notas por 3
 
-    OR AL,30H
-    MOV MEDIAS[DI],AL
+    OR AL,30H ;transforma o resultado em AL em valor ascii
+    MOV MEDIAS[DI],AL ;move o conteúdo de AL para o vetor de medias
     INC DI
 
-    ADD SI,3
+    ADD SI,3 ;pula para a próxima linha de notas
 
-    XOR AX,AX
+    XOR AX,AX ;zera ax para o próximo loop
 
     DEC CH
     JNZ CALC_MEDIA
@@ -223,15 +227,15 @@ IMPMEDIA PROC
 
     PUSH DI
     
-    ESPACO
+    ESPACO ;imprime 2 espaços para alinhar as médias corretamente
     ESPACO
     
-    XOR AX,AX
-    MOV AL,DH
-    MOV DI,AX
-    MOV AL,MEDIAS[DI]
-    AND AL,0FH
-    CALL SAIDEC
+    XOR AX,AX ;zera AX
+    MOV AL,DH ;move o número acumulado em DH para AL
+    MOV DI,AX ;move o conteúdo de AX para DI para apontar para a média de um certo aluno
+    MOV AL,MEDIAS[DI] ;move o conteúdo do endereço DI do vetor de médias para AL
+    AND AL,0FH ;transforma em valor decimal
+    CALL SAIDEC ;chama o procedimento de saída de número decimal
 
     POP DI
 
@@ -247,23 +251,26 @@ IMPALUNO PROC ;-----------------------------------------------------------------
     MOV AH,09
     INT 21H
 
+    ;prepara DX, DI e SI
     XOR DX,DX
-
     XOR DI,DI
     XOR SI,SI
-    MOV CH,5
+    
+    MOV CH,5 ;move 5 para CH para a leitura das linhas de nomes
 
     IMP_AL1:
     PULALINHA
     XOR BX,BX
-    MOV CL,15
+    MOV CL,15 ;move 15 para CL para a leitura das letras de cada nome
 
     IMP_AL2:
-    MOV AL,ALUNOS[SI+BX]
+    MOV AL,ALUNOS[SI+BX] ;move a letra atual para AL
     
-    CMP AL,?
+    ;compara AL com ?, caso for igual ele termina a leitura daquele nome e pula para o próximo
+    CMP AL,? 
     JE NOVACOLUNA
     
+    ;faz a leitura da letra
     MOV DL,AL
     MOV AH,02
     INT 21H
@@ -279,13 +286,13 @@ IMPALUNO PROC ;-----------------------------------------------------------------
     DEC CL
     JNZ IMP_AL2
     
-    CALL IMPNOTAS
-    ADD DI,3
+    CALL IMPNOTAS ;chama o procedimento de imprimir as notas do aluno atual
+    ADD DI,3 ;adiciona 3 a DI para pular para próxima linha de notas para o próximo aluno
 
-    CALL IMPMEDIA
-    INC DH
+    CALL IMPMEDIA ;chama o procedimento de imprimir a média do aluno atual
+    INC DH ;aumenta DH para pular para a média do próximo aluno
 
-    ADD SI,15
+    ADD SI,15 ;pula para o próximo nome
     DEC CH
     JNZ IMP_AL1
 
@@ -305,12 +312,13 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
 
     IMP_NOTAS:
 
-    MOV AL,NOTAS[DI+BX]
-    AND AL,0FH
+    MOV AL,NOTAS[DI+BX] ;move o valor da nota atual para AL
+    AND AL,0FH ;transforma o valor em número decimal
 
-    CMP AL,10
+    ;compara AL com 10, caso igual ou maior, pula para a parte onde se imprime apenas um espaço
+    ;para alinhas as notas independente do tamanho delas
+    CMP AL,10  
     JAE PULAR
-
     CALL SAIDEC
 
     ESPACO
@@ -318,7 +326,7 @@ IMPNOTAS PROC ;-----------------------------------------------------------------
     JMP CONT
 
     PULAR:
-    CALL SAIDEC
+    CALL SAIDEC ;chama o procedimento de imprimir valor decimal
 
     ESPACO
 
@@ -439,69 +447,76 @@ ALTERARNOTAS PROC ;-------------------------------------------------------------
     MOV AH,09
     INT 21H
     
-    MOV CX,15
-    XOR BX,BX
+    MOV CX,15 ;realiza o loop 15 vezes
+    XOR BX,BX ;zprepara BX
 
     LER_ALT:
-    MOV AH,01
+    MOV AH,01 ;le um caractere
     INT 21H
 
-    CMP AL,0DH
+    CMP AL,0DH ;compara com 'enter' para terminar a leitura
     JE SAIR_ALT1
     
-    MOV ALUNOALT[BX],AL
+    MOV ALUNOALT[BX],AL ;move o conteúdo de AL para o vetor de nome a ser pesquisado, vetor que
+                        ;será comparado com o nome do aluno
 
     INC BX
     LOOP LER_ALT
 
     SAIR_ALT1:
+    ;zera os registradores
     XOR CX,CX
     XOR DI,DI
     XOR AX,AX
     XOR SI,SI
     XOR DX,DX
     
-    MOV CH,5
+    MOV CH,5 ;prepara CH para as 5 linhas da matriz de nomes
     
     COLUNA_ALT:
     XOR BX,BX
-    MOV CL,15
-    MOV SOMAT,0
+    MOV CL,15 ;prepara CL para os 15 caracteres do nome atual
+    MOV DIF,0 ;zera o registrador que aumenta caso os caracteres comparados forem diferentes
 
     LINHA_ALT:
-    MOV AL,ALUNOS[SI+BX]
-    CMP AL,?
+    MOV AL,ALUNOS[SI+BX] ;move um caractere do nome do aluno atual para AL
+    CMP AL,? ;compara com ? para pular para o próximo nome
     JE FIMLINHA
     
-    MOV DH,ALUNOALT[BX]
-    CMP AL,DH
+    MOV DL,ALUNOALT[BX] ;move um caractere do nome a ser comparado para DL
+    
+    ;compara os caracteres, caso igual ele segue para o próximo caractere e caso diferente
+    ;ele pula para a parte onde se aumenta o valor no registrador DIF
+    CMP AL,DL
     JNE NAOIGUAL
     
     INC BX
     DEC CL
     JNZ LINHA_ALT
-    JMP FIMLINHA
+    JMP FIMLINHA ;pula a parte de aumentar DIF caso nenhuma comparação der diferente
 
     NAOIGUAL:
-    MOV SOMAT,1
+    MOV DIF,1
 
     FIMLINHA:
-    CMP SOMAT,1
+    CMP DIF,1 ;compara DIF com 1, caso igual os nomes são diferentes e ele pula para o próximo nome para comparar
     JE PROXCOL
-    XOR BX,BX
+    
+    XOR BX,BX ;zera BX
+    
+    ;chama as funções de ler nota e calcular média com os valores de DI e DH acumulados com os loops
     CALL LERNOTAS
     CALL CALCMEDIA
     JMP FIM_ALT
 
     PROXCOL:
-    ADD SI,15
-    ADD DI,3
-    INC DH
+    ADD SI,15 ;aumenta SI para ir para o próximo nome
+    ADD DI,3 ;aumenta DI para ir para a próxima linha de notas
+    INC DH ;aumenta DH para ir para a próxima média
     DEC CH
     JNZ COLUNA_ALT
 
-    ERRO_ALT:
-    LEA DX,MSG_N_ENC
+    LEA DX,MSG_N_ENC ;caso nenhum nome for igual ao pesquisado, le a mensagem de que o aluno não foi encontrado
     MOV AH,09
     INT 21H
 
